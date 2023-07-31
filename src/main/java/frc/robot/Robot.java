@@ -4,12 +4,16 @@
 
 package frc.robot;
 
+import edu.wpi.first.wpilibj.PWM;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.motorcontrol.Spark;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import com.revrobotics.*;
 import com.revrobotics.CANSparkMax;
+import com.revrobotics.CANSparkMax.IdleMode;
+
+import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 
 
 /**
@@ -24,8 +28,12 @@ public class Robot extends TimedRobot {
   private String m_autoSelected;
   private final SendableChooser<String> m_chooser = new SendableChooser<>();
   private final CANSparkMax motor = new CANSparkMax(2, CANSparkMax.MotorType.kBrushless);
-  private final CANSparkMax encoder1 = new CANSparkMax(1, CANSparkMax.MotorType.kBrushless);
-  private final CANSparkMax encoder2 = new CANSparkMax(3, CANSparkMax.MotorType.kBrushless);
+  private final RelativeEncoder motorEncoder = motor.getEncoder();
+  private final PWM encoderLeft = new PWM(0); 
+  private final PWM encoderRight = new PWM(1); 
+  private double motorPosition = 0;
+  private double motorVelocity = 0;
+  private double motorTargetVelocity = 0;
 
 
   /**
@@ -84,12 +92,29 @@ public class Robot extends TimedRobot {
   /** This function is called once when teleop is enabled. */
   @Override
   public void teleopInit() {
-
+    motor.setOpenLoopRampRate(Constants.rampRate);
+    motor.setIdleMode(IdleMode.kBrake);
+    motorEncoder.setPosition(0);
+    motorEncoder.setInverted(Constants.motorInverted);
+    motorEncoder.setPositionConversionFactor(Constants.NeoTickstoFeet);
+    motorEncoder.setVelocityConversionFactor(Constants.NeoTickstoFeet);
   }
 
   /** This function is called periodically during operator control. */
   @Override
-  public void teleopPeriodic() {}
+  public void teleopPeriodic() {
+    double OdoAngle = SmartDashboard.getNumber("Pod Angle - Y fwd, right pos, degrees", 0);
+    motorPosition = motorEncoder.getPosition();
+    motorVelocity = motorEncoder.getVelocity();
+    motorTargetVelocity = motorEncoder.getPosition() < (Constants.travelDist - Constants.decelDist) ? Constants.maxSpeed : 0;
+
+    motor.set(motorTargetVelocity);
+    SmartDashboard.putNumber("Motor Position", motorPosition);
+    SmartDashboard.putNumber("Motor Velocity", motorVelocity);
+    SmartDashboard.putNumber("Motor Velocity Target", motorTargetVelocity);
+    SmartDashboard.putNumber("EncoderLeft Position", encoderLeft.getPosition());
+    SmartDashboard.putNumber("EncoderRight Position", encoderRight.getPosition());
+  }
 
   /** This function is called once when the robot is disabled. */
   @Override
