@@ -4,16 +4,19 @@
 
 package frc.robot;
 
-import edu.wpi.first.wpilibj.PWM;
-import edu.wpi.first.wpilibj.TimedRobot;
-import edu.wpi.first.wpilibj.motorcontrol.Spark;
-import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import com.revrobotics.*;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkMax.IdleMode;
+import com.revrobotics.RelativeEncoder;
 
+import edu.wpi.first.networktables.GenericEntry;
+import edu.wpi.first.networktables.NetworkTableEntry;
+import edu.wpi.first.wpilibj.PWM;
+import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
+import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
+import edu.wpi.first.wpilibj.shuffleboard.SimpleWidget;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 
 /**
@@ -27,15 +30,24 @@ public class Robot extends TimedRobot {
   private static final String kCustomAuto = "My Auto";
   private String m_autoSelected;
   private final SendableChooser<String> m_chooser = new SendableChooser<>();
-  private final CANSparkMax motor = new CANSparkMax(2, CANSparkMax.MotorType.kBrushless);
+  private final CANSparkMax motor = new CANSparkMax(6, CANSparkMax.MotorType.kBrushless);
   private final RelativeEncoder motorEncoder = motor.getEncoder();
   private final PWM encoderLeft = new PWM(0); 
   private final PWM encoderRight = new PWM(1); 
   private double motorPosition = 0;
   private double motorVelocity = 0;
   private double motorTargetVelocity = 0;
-
-
+  private boolean goingIn = false;
+  private double leftEncoderStart = 0;
+  private double rightEncoderStart = 0;
+  private double runCount = 0;
+  private boolean stopped = false;
+  private ShuffleboardTab tab = Shuffleboard.getTab("main");
+  private GenericEntry start = tab.add("go", false).getEntry();
+  private GenericEntry got = tab.add("got", true).getEntry();
+  private GenericEntry goinIn = tab.add("goin in", true).getEntry();
+  private GenericEntry motorCurrent = tab.add("motorCurrent", 0).getEntry();
+  private GenericEntry resetMotor = tab.add("reset motor button", true).getEntry();
   /**
    * This function is run when the robot is first started up and should be used for any
    * initialization code.
@@ -56,6 +68,12 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void robotPeriodic() {
+    
+    SmartDashboard.putNumber("Motor Position", motorPosition);
+    SmartDashboard.putNumber("Motor Velocity", motorVelocity);
+    SmartDashboard.putNumber("Motor Velocity Target", motorTargetVelocity);
+    SmartDashboard.putNumber("EncoderLeft Position", encoderLeft.getPosition());
+    SmartDashboard.putNumber("EncoderRight Position", encoderRight.getPosition());
   }
 
   /**
@@ -95,27 +113,87 @@ public class Robot extends TimedRobot {
     motor.setOpenLoopRampRate(Constants.rampRate);
     motor.setIdleMode(IdleMode.kBrake);
     motorEncoder.setPosition(0);
-    motorEncoder.setInverted(Constants.motorInverted);
+    motor.setInverted(Constants.motorInverted);
     motorEncoder.setPositionConversionFactor(Constants.NeoTickstoFeet);
-    motorEncoder.setVelocityConversionFactor(Constants.NeoTickstoFeet);
+    motorEncoder.setVelocityConversionFactor(Constants.NeoTickstoFeet/60);
+    goingIn = false;
   }
 
   /** This function is called periodically during operator control. */
   @Override
   public void teleopPeriodic() {
+    boolean tart = start.getBoolean(false);
     double OdoAngle = SmartDashboard.getNumber("Pod Angle - Y fwd, right pos, degrees", 0);
     motorPosition = motorEncoder.getPosition();
     motorVelocity = motorEncoder.getVelocity();
-    motorTargetVelocity = motorEncoder.getPosition() < (Constants.travelDist - Constants.decelDist) ? Constants.maxSpeed : 0;
 
-    motor.set(motorTargetVelocity);
+    if (motorPosition > Constants.travelDist - Constants.outTolerance) {
+      if (tart) {
+        if (!goingIn) {
+          leftEncoderStart = encoderLeft.getPosition();
+          rightEncoderStart = encoderRight.getPosition();
+        }
+        goingIn = true;
+      } else if (!goingIn) {
+        stopped = true;
+      }
+    }
+    if (motorPosition < Constants.inTolerance) {
+      if (goingIn) {
+        runCount +=1;
+      }
+      goingIn = false;
+    }
+    stopped = tart ? false : stopped;
+
+    if (resetMotor.getBoolean(true)){
+      resetMotor.setBoolean(motor.getOutputCurrent() < 5);
+      motor.set(-Constants.speedOut);
+      if (motor.getOutputCurrent() > 5) {
+        motorEncoder.setPosition(0);
+      }
+    } else {
+      if (stopped) {
+        motorTargetVelocity = 0;
+      } else {
+        if (goingIn) {
+          motorTargetVelocity = -Constants.maxSpeed;
+        } else if (motorVelocity < -0.1) {
+          motorTargetVelocity = 0;
+        } else {
+          motorTargetVelocity = Constants.speedOut;
+        }
+      }
+      motor.set(motorTargetVelocity);
+    }
+    double encoderLeftDivisor = Math.cos((OdoAngle - 45) * Math.PI/180);
+    double encoderRightDivisor = Math.cos((OdoAngle - 45) * Math.PI/180);
+    double encoderLeftDisplacement = (encoderLeft.getPosition() - leftEncoderStart) * Constants.encoderTickstoFeet / encoderLeftDivisor;
+    double encoderRightDisplacement = (encoderRight.getPosition() - rightEncoderStart) * Constants.encoderTickstoFeet / encoderLeftDivisor;
+    double encodersDisplacement = Math.abs(encoderLeftDivisor) <= 0.1 ? encoderRightDisplacement : (Math.abs(encoderRightDivisor) <= 0.1 ? encoderLeftDisplacement : (encoderLeftDisplacement + encoderRightDisplacement) / 2);
+
     SmartDashboard.putNumber("Motor Position", motorPosition);
     SmartDashboard.putNumber("Motor Velocity", motorVelocity);
     SmartDashboard.putNumber("Motor Velocity Target", motorTargetVelocity);
-    SmartDashboard.putNumber("EncoderLeft Position", encoderLeft.getPosition());
-    SmartDashboard.putNumber("EncoderRight Position", encoderRight.getPosition());
+    SmartDashboard.putNumber("EncoderLeft Position ticks", encoderLeft.getPosition());
+    SmartDashboard.putNumber("EncoderRight Position ticks", encoderRight.getPosition());
+    SmartDashboard.putNumber("Calculated Position feet", encodersDisplacement);
+    SmartDashboard.putNumber("Run Count", runCount);
+    got.setBoolean(tart);
+    goinIn.setBoolean(goingIn);
+
+    motorCurrent.setDouble(motor.getOutputCurrent());
   }
 
+  // public boolean resetMotor() {
+  //   if (Math.abs(motor.getOutputCurrent()) < 5) {
+  //     // motor.set(0.05);
+  //     return true;
+  //   } else {
+  //     motorEncoder.setPosition(0);
+  //     return false;
+  //   }
+  // }
   /** This function is called once when the robot is disabled. */
   @Override
   public void disabledInit() {}
