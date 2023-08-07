@@ -12,6 +12,7 @@ import edu.wpi.first.networktables.GenericEntry;
 import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.Encoder;
+import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.PWM;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
@@ -44,18 +45,31 @@ public class Robot extends TimedRobot {
   private boolean goingIn = false;
   private double leftEncoderStart = 0;
   private double rightEncoderStart = 0;
+  private double motorStart = 0;
   private double runCount = 0;
-  private boolean stopped = false;
+  private double prevRampRate = Constants.rampRate;
+  private boolean stopped, stopGraph = false;
   private ShuffleboardTab tab = Shuffleboard.getTab("main");
-  private GenericEntry start = tab.add("go", false).getEntry();
+  private GenericEntry start = tab.add("go BUTTON", false).getEntry();
   private GenericEntry got = tab.add("got", true).getEntry();
-  private GenericEntry goinIn = tab.add("goin in", true).getEntry();
-  private GenericEntry motorCurrent = tab.add("motorCurrent", 0).getEntry();
-  private GenericEntry resetMotor = tab.add("reset motor button", false).getEntry();
-  private GenericEntry motorPos = tab.add("Motor Position", 0).getEntry();
-  private GenericEntry motorVel = tab.add("Motor Velocity", 0).getEntry();
-  private GenericEntry maxSpeed = tab.add("Max Speed input", 1).getEntry();
-  private GenericEntry odoAngle = tab.add("Odo Angle", 0).getEntry();
+  // private GenericEntry goinIn = tab.add("goin in", true).getEntry();
+  // private GenericEntry motorCurrent = tab.add("motorCurrent", 0).getEntry();
+  private GenericEntry resetMotor = tab.add("reset motor BUTTON", false).getEntry();
+  // private GenericEntry motorPos = tab.add("Motor Position", 0).getEntry();
+  // private GenericEntry motorVel = tab.add("Motor Velocity", 0).getEntry();
+  private GenericEntry maxSpeed = tab.add("Max Speed INPUT", 1).getEntry();
+  private GenericEntry odoAngle = tab.add("Odo Angle INPUT", 0).getEntry();
+  private GenericEntry odoMultiplier = tab.add("Odo Multiplier INPUT", 1).getEntry();
+
+  private GenericEntry motorDisplacementCalc = tab.add("Motor Displacement Calculation", 0).getEntry();
+  private GenericEntry leftWheelDisplacement = tab.add("Left Wheel Displacement Calculation", 0).getEntry();
+  private GenericEntry rightWheelDisplacement = tab.add("Right Wheel Displacement Calculation", 0).getEntry();
+  private GenericEntry totalWheelDisplacement = tab.add("Total odometry displacement calculation", 0).getEntry();
+
+  private GenericEntry resetEncoders = tab.add("Reset Encoders for graph BUTTON", false).getEntry();
+  private GenericEntry rampRate = tab.add("Motor Ramp Rate INPUT", Constants.rampRate).getEntry();
+
+  private Joystick joystick = new Joystick(0);
   /**
    * This function is run when the robot is first started up and should be used for any
    * initialization code.
@@ -77,11 +91,11 @@ public class Robot extends TimedRobot {
   @Override
   public void robotPeriodic() {
     
-    SmartDashboard.putNumber("Motor Position", motorPosition);
-    SmartDashboard.putNumber("Motor Velocity", motorVelocity);
-    SmartDashboard.putNumber("Motor Velocity Target", motorTargetVelocity);
-    SmartDashboard.putNumber("EncoderLeft Ticks", encoderLeft.get());
-    SmartDashboard.putNumber("EncoderRight Ticks", encoderRight.get());
+    // SmartDashboard.putNumber("Motor Position", motorPosition);
+    // SmartDashboard.putNumber("Motor Velocity", motorVelocity);
+    // SmartDashboard.putNumber("Motor Velocity Target", motorTargetVelocity);
+    // SmartDashboard.putNumber("EncoderLeft Ticks", encoderLeft.get());
+    // SmartDashboard.putNumber("EncoderRight Ticks", encoderRight.get());
   }
 
   /**
@@ -118,7 +132,7 @@ public class Robot extends TimedRobot {
   /** This function is called once when teleop is enabled. */
   @Override
   public void teleopInit() {
-    motor.setOpenLoopRampRate(Constants.rampRate);
+    motor.setOpenLoopRampRate(rampRate.getDouble(Constants.rampRate));
     motor.setIdleMode(IdleMode.kBrake);
     motorEncoder.setPosition(0);
     motor.setInverted(Constants.motorInverted);
@@ -128,22 +142,37 @@ public class Robot extends TimedRobot {
     // encoderLeft.setDistancePerPulse(Constants.encoderTickstoFeet);
     // encoderRight.setDistancePerPulse(Constants.encoderTickstoFeet);
     resetMotor.setBoolean(true);
+    start.setBoolean(false);
+    stopGraph = false;
   }
 
   /** This function is called periodically during operator control. */
   @Override
   public void teleopPeriodic() {
+    if (rampRate.getDouble(Constants.rampRate) != prevRampRate) {
+      motor.setOpenLoopRampRate(rampRate.getDouble(Constants.rampRate));
+
+    }
+    prevRampRate = rampRate.getDouble(Constants.rampRate);
+    double multiplier = odoMultiplier.getDouble(1);
     boolean tart = start.getBoolean(false);
     double OdoAngle = odoAngle.getDouble(0);
     motorPosition = motorEncoder.getPosition();
     motorVelocity = motorEncoder.getVelocity();
 
-    if (motorPosition > Constants.travelDist - Constants.outTolerance) {
-      if (tart) {
-        if (!goingIn) {
+    if (resetEncoders.getBoolean(false) || joystick.getRawButton(3)) {
           leftEncoderStart = encoderLeft.get();
           rightEncoderStart = encoderRight.get();
-        }
+          motorStart = motorEncoder.getPosition();
+    }
+
+    if (motorPosition > Constants.travelDist - Constants.outTolerance) {
+      if (tart) {
+        // if (!goingIn) {
+          // leftEncoderStart = encoderLeft.get();
+          // rightEncoderStart = encoderRight.get();
+          // motorStart = motorEncoder.getPosition();
+        // }
         goingIn = true;
       } else if (!goingIn) {
         stopped = true;
@@ -155,7 +184,7 @@ public class Robot extends TimedRobot {
       }
       goingIn = false;
     } 
-    stopped = tart ? false : stopped;
+    stopped = Math.abs(joystick.getRawAxis(0)) > 0.1 ? stopped : (tart ? false : stopped);
 
     if (resetMotor.getBoolean(false)){
       resetMotor.setBoolean(motor.getOutputCurrent() < 2);
@@ -175,38 +204,52 @@ public class Robot extends TimedRobot {
           motorTargetVelocity = Constants.speedOut;
         }
       }
+      if (Math.abs(joystick.getRawAxis(0)) > 0.1) {
+        motorTargetVelocity = Math.abs(joystick.getRawAxis(0))*joystick.getRawAxis(0)/1.5;
+      }
       motor.set(motorTargetVelocity);
+
     }
     double encoderLeftDivisor = Math.cos((OdoAngle - 45) * Math.PI/180);
     double encoderRightDivisor = Math.cos((OdoAngle - 135) * Math.PI/180);
-    double encoderLeftDisplacement = (encoderLeft.get() - leftEncoderStart) * Constants.encoderTickstoFeet * encoderLeftDivisor;
-    double encoderRightDisplacement = (encoderRight.get() - rightEncoderStart) * Constants.encoderTickstoFeet * encoderLeftDivisor;
-    double encodersDisplacement = Math.abs(encoderLeftDivisor) <= 0.1 ? encoderRightDisplacement : (Math.abs(encoderRightDivisor) <= 0.1 ? encoderLeftDisplacement : (encoderLeftDisplacement + encoderRightDisplacement) / 2);
+    double encoderLeftDisplacement = (encoderLeft.get() - leftEncoderStart) * Constants.encoderTickstoFeet * multiplier * encoderLeftDivisor;
+    double encoderRightDisplacement = (encoderRight.get() - rightEncoderStart) * Constants.encoderTickstoFeet * multiplier * encoderRightDivisor;
+    double motorDisplacement = -1 * (motorEncoder.getPosition() - motorStart);
+    double encodersDisplacement = Math.abs(encoderLeftDivisor) <= 0.1 ? encoderRightDisplacement : (Math.abs(encoderRightDivisor) <= 0.1 ? encoderLeftDisplacement : ((encoderLeftDisplacement + encoderRightDisplacement) / 2));
 
-    SmartDashboard.putNumber("Motor Position", motorPosition);
+    // SmartDashboard.putNumber("Motor Position", motorPosition);
     SmartDashboard.putNumber("Motor Velocity", motorVelocity);
-    SmartDashboard.putNumber("Motor Velocity Target", motorTargetVelocity);
-    SmartDashboard.putNumber("EncoderLeft Position ticks", encoderLeft.getDistance());
-    SmartDashboard.putNumber("EncoderRight Position ticks", encoderRight.getDistance());
-    SmartDashboard.putNumber("Calculated Position feet", encodersDisplacement);
+    // SmartDashboard.putNumber("Motor Velocity Target", motorTargetVelocity);
+    // SmartDashboard.putNumber("EncoderLeft Position ticks", encoderLeft.getDistance());
+    // SmartDashboard.putNumber("EncoderRight Position ticks", encoderRight.getDistance());
+    // SmartDashboard.putNumber("Calculated Position feet", encodersDisplacement);
     SmartDashboard.putNumber("Run Count", runCount);
 
-    SmartDashboard.putNumber("encoderleftdivisor", encoderLeftDivisor);
-    SmartDashboard.putNumber("encoderleftstart", leftEncoderStart);
-    SmartDashboard.putNumber("leftencoderdisplacement calculation", encoderLeftDisplacement);
-    SmartDashboard.putNumber("rightencoderdisplacement calculation", encoderRightDisplacement);
+    // SmartDashboard.putNumber("encoderleftdivisor", encoderLeftDivisor);
+    // SmartDashboard.putNumber("encoderleftstart", leftEncoderStart);
+    // SmartDashboard.putNumber("leftencoderdisplacement calculation", encoderLeftDisplacement);
+    // SmartDashboard.putNumber("rightencoderdisplacement calculation", encoderRightDisplacement);
+    // SmartDashboard.putNumber("motordisplacement calculation", motorDisplacement);
 
     got.setBoolean(tart);
-    goinIn.setBoolean(goingIn);
+    // goinIn.setBoolean(goingIn);
 
-    motorCurrent.setDouble(motor.getOutputCurrent());
-    motorPos.setDouble(motorPosition);
-    motorVel.setDouble(motorVelocity);
+    // motorCurrent.setDouble(motor.getOutputCurrent());
+    // motorPos.setDouble(motorPosition);
+    // motorVel.setDouble(motorVelocity);
+    if (!stopGraph) {
+      motorDisplacementCalc.setDouble(motorDisplacement);
+      leftWheelDisplacement.setDouble(encoderLeftDisplacement);
+      rightWheelDisplacement.setDouble(encoderRightDisplacement);
+      totalWheelDisplacement.setDouble(encodersDisplacement);
+    }
   }
 
   /** This function is called once when the robot is disabled. */
   @Override
-  public void disabledInit() {}
+  public void disabledInit() {
+    stopGraph = true;
+  }
 
   /** This function is called periodically when disabled. */
   @Override
