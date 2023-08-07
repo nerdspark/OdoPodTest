@@ -1,0 +1,182 @@
+{
+  "tabPane": [
+    {
+      "title": "SmartDashboard",
+      "autoPopulate": true,
+      "autoPopulatePrefix": "SmartDashboard/",
+      "widgetPane": {
+        "gridSize": 128.0,
+        "showGrid": true,
+        "hgap": 16.0,
+        "vgap": 16.0,
+        "titleType": 0,
+        "tiles": {
+          "6,0": {
+            "size": [
+              1,
+              1
+            ],
+            "content": {
+              "_type": "Text View",
+              "_source0": "network_table:///Shuffleboard/main/Max Speed INPUT",
+              "_title": "/Shuffleboard/main/Max Speed INPUT",
+              "_glyph": 148,
+              "_showGlyph": false
+            }
+          },
+          "7,0": {
+            "size": [
+              1,
+              1
+            ],
+            "content": {
+              "_type": "Text View",
+              "_source0": "network_table:///Shuffleboard/main/Odo Angle INPUT",
+              "_title": "/Shuffleboard/main/Odo Angle INPUT",
+              "_glyph": 148,
+              "_showGlyph": false
+            }
+          },
+          "8,0": {
+            "size": [
+              1,
+              1
+            ],
+            "content": {
+              "_type": "Text View",
+              "_source0": "network_table:///Shuffleboard/main/Odo Multiplier INPUT",
+              "_title": "Shuffleboard/main/Odo Multiplier INPUT",
+              "_glyph": 148,
+              "_showGlyph": false
+            }
+          },
+          "9,0": {
+            "size": [
+              1,
+              1
+            ],
+            "content": {
+              "_type": "Toggle Switch",
+              "_source0": "network_table:///Shuffleboard/main/go BUTTON",
+              "_title": "Shuffleboard/main/go BUTTON",
+              "_glyph": 148,
+              "_showGlyph": false
+            }
+          },
+          "9,1": {
+            "size": [
+              1,
+              1
+            ],
+            "content": {
+              "_type": "Boolean Box",
+              "_source0": "network_table:///Shuffleboard/main/got",
+              "_title": "Shuffleboard/main/got",
+              "_glyph": 148,
+              "_showGlyph": false,
+              "Colors/Color when true": "#7CFC00FF",
+              "Colors/Color when false": "#8B0000FF"
+            }
+          },
+          "8,1": {
+            "size": [
+              1,
+              1
+            ],
+            "content": {
+              "_type": "Toggle Switch",
+              "_source0": "network_table:///Shuffleboard/main/reset motor BUTTON",
+              "_title": "Shuffleboard/main/reset motor BUTTON",
+              "_glyph": 148,
+              "_showGlyph": false
+            }
+          },
+          "9,2": {
+            "size": [
+              1,
+              1
+            ],
+            "content": {
+              "_type": "Text View",
+              "_source0": "network_table:///SmartDashboard/Run Count",
+              "_title": "Run Count",
+              "_glyph": 148,
+              "_showGlyph": false
+            }
+          },
+          "0,0": {
+            "size": [
+              5,
+              3
+            ],
+            "content": {
+              "_type": "Graph",
+              "_source0": "network_table:///Shuffleboard/main/Motor Displacement Calculation",
+              "_source1": "network_table:///Shuffleboard/main/Left Wheel Displacement Calculation",
+              "_source2": "network_table:///Shuffleboard/main/Right Wheel Displacement Calculation",
+              "_source3": "network_table:///Shuffleboard/main/Total odometry displacement calculation",
+              "_title": "Graph (4 sources)",
+              "_glyph": 148,
+              "_showGlyph": false,
+              "Graph/Visible time": 10.0,
+              "Graph/X-axis auto scrolling": true,
+              "Y-axis/Automatic bounds": true,
+              "Y-axis/Upper bound": 3.0,
+              "Y-axis/Lower bound": 0.0,
+              "Y-axis/Unit": "ft",
+              "Visible data/Shuffleboard/main/Left Wheel Displacement Calculation": true,
+              "Visible data/Shuffleboard/main/Motor Displacement Calculation": true,
+              "Visible data/Shuffleboard/main/Right Wheel Displacement Calculation": true,
+              "Visible data/Shuffleboard/main/Total odometry displacement calculation": true
+            }
+          },
+          "5,1": {
+            "size": [
+              2,
+              1
+            ],
+            "content": {
+              "_type": "Toggle Switch",
+              "_source0": "network_table:///Shuffleboard/main/Reset Encoders for graph BUTTON",
+              "_title": "Shuffleboard/main/Reset Encoders for graph BUTTON",
+              "_glyph": 148,
+              "_showGlyph": false
+            }
+          },
+          "5,2": {
+            "size": [
+              1,
+              1
+            ],
+            "content": {
+              "_type": "Text View",
+              "_source0": "network_table:///Shuffleboard/main/Motor Ramp Rate INPUT",
+              "_title": "/Shuffleboard/main/Motor Ramp Rate INPUT",
+              "_glyph": 148,
+              "_showGlyph": false
+            }
+          }
+        }
+      }
+    },
+    {
+      "title": "LiveWindow",
+      "autoPopulate": true,
+      "autoPopulatePrefix": "LiveWindow/",
+      "widgetPane": {
+        "gridSize": 128.0,
+        "showGrid": true,
+        "hgap": 16.0,
+        "vgap": 16.0,
+        "titleType": 0,
+        "tiles": {}
+      }
+    }
+  ],
+  "windowGeometry": {
+    "x": -0.800000011920929,
+    "y": 1.600000023841858,
+    "width": 1536.0,
+    "height": 632.0
+  }
+}
