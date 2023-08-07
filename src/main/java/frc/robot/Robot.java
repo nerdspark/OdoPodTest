@@ -53,7 +53,7 @@ public class Robot extends TimedRobot {
   private GenericEntry start = tab.add("go BUTTON", false).getEntry();
   private GenericEntry got = tab.add("got", true).getEntry();
   // private GenericEntry goinIn = tab.add("goin in", true).getEntry();
-  // private GenericEntry motorCurrent = tab.add("motorCurrent", 0).getEntry();
+  private GenericEntry motorCurrent = tab.add("motorCurrent", 0).getEntry();
   private GenericEntry resetMotor = tab.add("reset motor BUTTON", false).getEntry();
   // private GenericEntry motorPos = tab.add("Motor Position", 0).getEntry();
   // private GenericEntry motorVel = tab.add("Motor Velocity", 0).getEntry();
@@ -68,6 +68,7 @@ public class Robot extends TimedRobot {
 
   private GenericEntry resetEncoders = tab.add("Reset Encoders for graph BUTTON", false).getEntry();
   private GenericEntry rampRate = tab.add("Motor Ramp Rate INPUT", Constants.rampRate).getEntry();
+  private GenericEntry stopDist = tab.add("Deaccel Distance INPUT", Constants.inTolerance).getEntry();
 
   private Joystick joystick = new Joystick(0);
   /**
@@ -134,7 +135,7 @@ public class Robot extends TimedRobot {
   public void teleopInit() {
     motor.setOpenLoopRampRate(rampRate.getDouble(Constants.rampRate));
     motor.setIdleMode(IdleMode.kBrake);
-    motorEncoder.setPosition(0);
+    // motorEncoder.setPosition(0);
     motor.setInverted(Constants.motorInverted);
     motorEncoder.setPositionConversionFactor(Constants.NeoTickstoFeet);
     motorEncoder.setVelocityConversionFactor(Constants.NeoTickstoFeet/60);
@@ -151,7 +152,6 @@ public class Robot extends TimedRobot {
   public void teleopPeriodic() {
     if (rampRate.getDouble(Constants.rampRate) != prevRampRate) {
       motor.setOpenLoopRampRate(rampRate.getDouble(Constants.rampRate));
-
     }
     prevRampRate = rampRate.getDouble(Constants.rampRate);
     double multiplier = odoMultiplier.getDouble(1);
@@ -178,7 +178,7 @@ public class Robot extends TimedRobot {
         stopped = true;
       }
     }
-    if (motorPosition < Constants.inTolerance) {
+    if (motorPosition < stopDist.getDouble(Constants.inTolerance)) {
       if (goingIn) {
         runCount +=1;
       }
@@ -188,9 +188,9 @@ public class Robot extends TimedRobot {
 
     if (resetMotor.getBoolean(false)){
       resetMotor.setBoolean(motor.getOutputCurrent() < 2);
-      motor.set(-Constants.speedOut);
+      motor.set(Constants.speedOut);
       if (motor.getOutputCurrent() > 2) {
-        motorEncoder.setPosition(0);
+        motorEncoder.setPosition(Constants.travelDist);
       }
     } else {
       if (stopped) {
@@ -205,7 +205,7 @@ public class Robot extends TimedRobot {
         }
       }
       if (Math.abs(joystick.getRawAxis(0)) > 0.1) {
-        motorTargetVelocity = Math.abs(joystick.getRawAxis(0))*joystick.getRawAxis(0)/1.5;
+        motorTargetVelocity = Math.abs(joystick.getRawAxis(0))*joystick.getRawAxis(0)/2.5;
       }
       motor.set(motorTargetVelocity);
 
@@ -234,7 +234,7 @@ public class Robot extends TimedRobot {
     got.setBoolean(tart);
     // goinIn.setBoolean(goingIn);
 
-    // motorCurrent.setDouble(motor.getOutputCurrent());
+    motorCurrent.setDouble(motor.getOutputCurrent());
     // motorPos.setDouble(motorPosition);
     // motorVel.setDouble(motorVelocity);
     if (!stopGraph) {
