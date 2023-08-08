@@ -187,9 +187,9 @@ public class Robot extends TimedRobot {
     stopped = Math.abs(joystick.getRawAxis(0)) > 0.1 ? stopped : (tart ? false : stopped);
 
     if (resetMotor.getBoolean(false)){
-      resetMotor.setBoolean(motor.getOutputCurrent() < 2);
-      motor.set(Constants.speedOut);
-      if (motor.getOutputCurrent() > 2) {
+      resetMotor.setBoolean(motor.getOutputCurrent() < 1);
+      motor.set(0.05);
+      if (motor.getOutputCurrent() > 1) {
         motorEncoder.setPosition(Constants.travelDist);
       }
     } else {
@@ -212,8 +212,8 @@ public class Robot extends TimedRobot {
     }
     double encoderLeftDivisor = Math.cos((OdoAngle - 45) * Math.PI/180);
     double encoderRightDivisor = Math.cos((OdoAngle - 135) * Math.PI/180);
-    double encoderLeftDisplacement = (encoderLeft.get() - leftEncoderStart) * Constants.encoderTickstoFeet * multiplier * encoderLeftDivisor;
-    double encoderRightDisplacement = (encoderRight.get() - rightEncoderStart) * Constants.encoderTickstoFeet * multiplier * encoderRightDivisor;
+    double encoderLeftDisplacement = (encoderLeft.get() - leftEncoderStart) * Constants.encoderTickstoFeet * multiplier / encoderLeftDivisor;
+    double encoderRightDisplacement = (encoderRight.get() - rightEncoderStart) * Constants.encoderTickstoFeet * multiplier / encoderRightDivisor;
     double motorDisplacement = -1 * (motorEncoder.getPosition() - motorStart);
     double encodersDisplacement = Math.abs(encoderLeftDivisor) <= 0.1 ? encoderRightDisplacement : (Math.abs(encoderRightDivisor) <= 0.1 ? encoderLeftDisplacement : ((encoderLeftDisplacement + encoderRightDisplacement) / 2));
 

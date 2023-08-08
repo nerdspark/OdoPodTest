@@ -19,7 +19,7 @@
             "content": {
               "_type": "Text View",
               "_source0": "network_table:///Shuffleboard/main/Max Speed INPUT",
-              "_title": "/Shuffleboard/main/Max Speed INPUT",
+              "_title": "Max Speed INPUT",
               "_glyph": 148,
               "_showGlyph": false
             }
@@ -32,20 +32,7 @@
             "content": {
               "_type": "Text View",
               "_source0": "network_table:///Shuffleboard/main/Odo Angle INPUT",
-              "_title": "/Shuffleboard/main/Odo Angle INPUT",
-              "_glyph": 148,
-              "_showGlyph": false
-            }
-          },
-          "6,2": {
-            "size": [
-              1,
-              1
-            ],
-            "content": {
-              "_type": "Text View",
-              "_source0": "network_table:///Shuffleboard/main/Odo Multiplier INPUT",
-              "_title": "Shuffleboard/main/Odo Multiplier INPUT",
+              "_title": "/Odo Angle INPUT",
               "_glyph": 148,
               "_showGlyph": false
             }
@@ -58,7 +45,7 @@
             "content": {
               "_type": "Toggle Switch",
               "_source0": "network_table:///Shuffleboard/main/go BUTTON",
-              "_title": "Shuffleboard/main/go BUTTON",
+              "_title": "go BUTTON",
               "_glyph": 148,
               "_showGlyph": false
             }
@@ -71,7 +58,7 @@
             "content": {
               "_type": "Boolean Box",
               "_source0": "network_table:///Shuffleboard/main/got",
-              "_title": "Shuffleboard/main/got",
+              "_title": "got",
               "_glyph": 148,
               "_showGlyph": false,
               "Colors/Color when true": "#7CFC00FF",
@@ -86,12 +73,12 @@
             "content": {
               "_type": "Toggle Switch",
               "_source0": "network_table:///Shuffleboard/main/reset motor BUTTON",
-              "_title": "Shuffleboard/main/reset motor BUTTON",
+              "_title": "reset motor BUTTON",
               "_glyph": 148,
               "_showGlyph": false
             }
           },
-          "9,3": {
+          "4,2": {
             "size": [
               1,
               1
@@ -111,11 +98,11 @@
             ],
             "content": {
               "_type": "Graph",
-              "_source0": "network_table:///Shuffleboard/main/Left Wheel Displacement Calculation",
-              "_source1": "network_table:///Shuffleboard/main/Right Wheel Displacement Calculation",
-              "_source2": "network_table:///Shuffleboard/main/Total odometry displacement calculation",
-              "_source3": "network_table:///Shuffleboard/main/Motor Displacement Calculation",
-              "_title": "Graph (4 sources)",
+              "_source0": "network_table:///Shuffleboard/main/Motor Displacement Calculation",
+              "_source1": "network_table:///Shuffleboard/main/Left Wheel Displacement Calculation",
+              "_source2": "network_table:///Shuffleboard/main/Right Wheel Displacement Calculation",
+              "_source3": "network_table:///Shuffleboard/main/Total odometry displacement calculation",
+              "_title": "motor vs. odometry pos",
               "_glyph": 148,
               "_showGlyph": false,
               "Graph/Visible time": 10.0,
@@ -136,9 +123,9 @@
               1
             ],
             "content": {
-              "_type": "Toggle Switch",
+              "_type": "Toggle Button",
               "_source0": "network_table:///Shuffleboard/main/Reset Encoders for graph BUTTON",
-              "_title": "Shuffleboard/main/Reset Encoders for graph BUTTON",
+              "_title": "Reset Encoders for graph BUTTON",
               "_glyph": 148,
               "_showGlyph": false
             }
@@ -151,20 +138,20 @@
             "content": {
               "_type": "Text View",
               "_source0": "network_table:///Shuffleboard/main/Motor Ramp Rate INPUT",
-              "_title": "/Shuffleboard/main/Motor Ramp Rate INPUT",
+              "_title": "Motor Ramp Rate INPUT",
               "_glyph": 148,
               "_showGlyph": false
             }
           },
-          "4,2": {
+          "7,3": {
             "size": [
-              1,
+              2,
               1
             ],
             "content": {
               "_type": "Voltage View",
               "_source0": "network_table:///Shuffleboard/main/motorCurrent",
-              "_title": "Shuffleboard/main/motorCurrent",
+              "_title": "motorCurrent (amps)",
               "_glyph": 148,
               "_showGlyph": false,
               "Range/Min": 0.0,
@@ -182,7 +169,8 @@
             "content": {
               "_type": "Graph",
               "_source0": "network_table:///SmartDashboard/Motor Velocity",
-              "_title": "SmartDashboard/Motor Velocity",
+              "_source1": "network_table:///Shuffleboard/main/motorCurrent",
+              "_title": "Motor Velocity",
               "_glyph": 148,
               "_showGlyph": false,
               "Graph/Visible time": 30.0,
@@ -191,7 +179,21 @@
               "Y-axis/Upper bound": 1.0,
               "Y-axis/Lower bound": -1.0,
               "Y-axis/Unit": "ul",
+              "Visible data/Shuffleboard/main/motorCurrent": true,
               "Visible data/SmartDashboard/Motor Velocity": true
+            }
+          },
+          "6,2": {
+            "size": [
+              1,
+              1
+            ],
+            "content": {
+              "_type": "Text View",
+              "_source0": "network_table:///Shuffleboard/main/Deaccel Distance INPUT",
+              "_title": "Shuffleboard/main/Deaccel Distance INPUT",
+              "_glyph": 148,
+              "_showGlyph": false
             }
           }
         }
@@ -212,9 +214,9 @@
     }
   ],
   "windowGeometry": {
-    "x": -0.800000011920929,
-    "y": 1.600000023841858,
-    "width": 1536.0,
-    "height": 632.0
+    "x": -7.199999809265137,
+    "y": -7.199999809265137,
+    "width": 1550.4000244140625,
+    "height": 838.4000244140625
   }
 }
