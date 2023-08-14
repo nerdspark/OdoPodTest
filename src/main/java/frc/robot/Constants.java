@@ -11,6 +11,6 @@ public final class Constants {
     public static final boolean motorInverted = true;
     public static final double NeoTickstoFeet = travelDist/travelRot;  
     public static final double encoderTickstoFeet = (3.25 * Math.PI / 12) / 2048; //TODO
-    public static final double outTolerance = 0.5;
+    public static final double outTolerance = 0.65;
     public static final double inTolerance = 1.75;
 }
